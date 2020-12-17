@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader, Sampler
 from torch import nn
 from tensorboardX import SummaryWriter
 
-from NCCTest import testNCC # check script name
+from NCCTest_linear import testNCC # check script name
 
 class NCC(nn.Module):
     def __init__(self, trainSplitRatio=0.7, sizeEmbLayer=100, sizeClassfLayer=100, dropOutRatio=0.75,):
@@ -95,11 +95,12 @@ def returnTorch(listObj):
     Y = Y[..., np.newaxis]
     return torch.from_numpy(X), torch.from_numpy(Y), torch.from_numpy(Label)
 
+
 if __name__ == '__main__':
-    batchSize = 256
-    fileName = "C:/Users/Kardien/Documents/GitHub/NCC-pytorch-main/causal-data-gen-30K.json-original"
+    batchSize = 256 # whole data size = 30000
+    fileName = "C:/Users/Kardien/Documents/GitHub/psych239_f2020/causal-data-gen-30K.json-original"
     trainSplitRatio = 0.7
-    iterVal = 25
+    iterVal = 25 # epochs = 256*50/30000
     intLrRate = 0.0001
 
     ''' *************************  '''
@@ -175,3 +176,5 @@ if __name__ == '__main__':
         # if (itr % 10 == 0):
         #     for param_group in optimizer.param_groups:
         #         param_group['lr'] *= 0.1
+
+

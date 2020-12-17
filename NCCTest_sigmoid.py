@@ -1,14 +1,8 @@
+import torch
 import json
 import numpy as np
-import torch
-import random
-import tensorboardX
-import matplotlib as plt
-from torch.utils.data import Dataset, DataLoader, Sampler
 from torch import nn
-from tensorboardX import SummaryWriter
-
-from NCCTest_sigmoid import testNCC # check script name
+import pickle
 
 class NCC(nn.Module):
     def __init__(self, trainSplitRatio=0.7, sizeEmbLayer=100, sizeClassfLayer=100, dropOutRatio=0.75,):
@@ -113,7 +107,6 @@ def returnTorchForVector(listObj):
     Y = Y[..., np.newaxis]
     return torch.from_numpy(X), torch.from_numpy(Y)
 
-
 def testNCC():
     tubDataset = "./data/tubehengenDataFormat.json"
     model = torch.load('./model/NCC_model_tanh.pt')
@@ -147,88 +140,41 @@ classLabel = {'person': 0, 'chair': 1, 'car': 2, 'dog': 3, 'bottle': 4, 'cat': 5
                            'bicycle': 13, 'horse': 14, 'motorbike': 15, 'diningtable': 16, 'cow': 17, 'train': 18,
                            'bus': 19}
 
-#if __name__ == '__main__':
-#    testNCC()
+def ExtractDataForVector():
+    FileName = "resnetModelFeatureVector.json"
+    Dataset = []
+    with open(FileName, "r") as DataReader:
+        for line in DataReader:
+            data = json.loads(line)
+            Dataset.append(data)
+
+    Dataset = np.array(Dataset)
+    namelist = np.array([s["className"] for s in Dataset])
+    NCCjsonDict = {}
+    for className in classLabel.keys():
+        classdata = Dataset[namelist == className]
+        if classdata.any():
+            TrainX, TrainY = returnTorchForVector(classdata)
+            NCCjsonDict[className] = {"TrainX": TrainX, "TrainY": TrainY}
+        else:
+            continue
+    return NCCjsonDict
+
+def testForVector():
+    NCCjsonDict = ExtractDataForVector()
+    CausalDict = {}
+    model = torch.load('./model/NCC_model_tanh.pt')
+    model.eval()
+    with torch.no_grad():
+        for className, data in NCCjsonDict.items():
+            print(className, "...")
+            InputX = data["TrainX"]
+            InputY = data["TrainY"]
+            print(InputX.shape)
+            _, prob = model(InputX.cuda().float(), InputY.cuda().float())
+            CausalDict[className] = prob.data.cpu().numpy()
+    with open("./CausalDict.pickle", "wb") as fp:
+        pickle.dump(CausalDict, fp)
 
 if __name__ == '__main__':
-    batchSize = 256 # whole data size = 30000
-    fileName = "C:/Users/Kardien/Documents/GitHub/psych239_f2020/causal-data-gen-30K.json-original"
-    trainSplitRatio = 0.7
-    iterVal = 25 # epochs = 1
-    intLrRate = 0.0001
-
-    ''' *************************  '''
-    with open(fileName, 'r') as ReadFile:
-        dataset = {}
-        for line in ReadFile:
-            data = json.loads(line)
-            if data["size"] not in dataset:
-                dataset[data["size"]] = [data]
-            else:
-                dataset[data["size"]].append(data)
-    train_dataset = {}
-    test_dataset = {}
-
-    for size, data in dataset.items():
-        random.shuffle(data)
-        idx = int(np.floor(trainSplitRatio * len(data)))
-        train_dataset[size] = data[:idx]
-        test_dataset[size] = data[idx:]
-
-    ''' *************************  '''
-
-    model = NCC()
-    model = model.cuda()
-
-    writer = SummaryWriter('runs/NCC')
-
-    criterion = torch.nn.BCELoss()
-    optimizer = torch.optim.RMSprop(params=model.parameters(), lr=intLrRate)
-    # optimizer = torch.optim.SGD(params=model.parameters(), lr=intLrRate, momentum=0.9, weight_decay=5e-4)
-    # optimizer = torch.optim.Adam(params=model.parameters(), lr=intLrRate)
-    ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
-    model.train()
-    test_lowest_loss = 1
-    count = 0
-    highest_acc = 0
-    for itr in range(iterVal):
-        model.train()
-        for size, data in train_dataset.items():
-            for idx in range(0, len(data), batchSize):
-                trainX, trainY, labels = returnTorch(data[idx: idx + batchSize])
-
-                optimizer.zero_grad()
-
-                logits, prob = model(trainX.cuda().float(), trainY.cuda().float())
-                # loss = criterion(logits.cuda().float(),  labels.t().cuda().float())
-                loss = criterion(prob.cuda().float(), labels.cuda().float())
-                writer.add_scalar('Train', loss.item(), count)
-                loss.backward()
-                ExpLR.step()
-
-                print("itr: ", itr, "count: ", count, "loss: ", loss)
-                count += 1
-
-        with torch.no_grad():
-            model.eval()
-            losslist = []
-            for size, data in test_dataset.items():
-                for idx in range(0, len(data), batchSize):
-                    testX, testY, labels = returnTorch(data[idx: idx + batchSize])
-                    logits, prob = model(testX.cuda().float(), testY.cuda().float())
-                    loss = criterion(prob.cuda().float(), labels.cuda().float())
-                    losslist.append(loss.item())
-            print("itr: ", itr, "loss: ", np.mean(losslist))
-            writer.add_scalar("test", np.mean(losslist), itr)
-            if np.mean(losslist) < test_lowest_loss:
-                test_lowest_loss = np.mean(losslist)
-                print("test_lowest_lost:", test_lowest_loss, " saving model ..")
-                torch.save(model, './model/NCC_model_tanh.pt')
-                writer.add_scalar("tubtest", testNCC(), itr)
-                if testNCC() > highest_acc:
-                    torch.save(model, './model/NCC_model_tanh.pt')
-        # if (itr % 10 == 0):
-        #     for param_group in optimizer.param_groups:
-        #         param_group['lr'] *= 0.1
-
-
+    testForVector()
