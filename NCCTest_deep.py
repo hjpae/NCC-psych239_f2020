@@ -41,18 +41,6 @@ class NCC(nn.Module):
             nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer), #6
             nn.ReLU(),
             nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer), #7
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer), #8
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer), #9
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer), #10
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
         )
 
         self.classLayer = nn.Sequential(
@@ -77,22 +65,6 @@ class NCC(nn.Module):
             nn.ReLU(),
             nn.Dropout(self.dropOutRatio),
             nn.Linear(self.sizeClassfLayer, self.sizeClassfLayer), #6
-            nn.BatchNorm1d(self.sizeClassfLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeClassfLayer, self.sizeClassfLayer), #7
-            nn.BatchNorm1d(self.sizeClassfLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeClassfLayer, self.sizeClassfLayer), #8
-            nn.BatchNorm1d(self.sizeClassfLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeClassfLayer, self.sizeClassfLayer), #9
-            nn.BatchNorm1d(self.sizeClassfLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeClassfLayer, self.sizeClassfLayer), #10
             nn.BatchNorm1d(self.sizeClassfLayer),
             nn.ReLU(),
             nn.Dropout(self.dropOutRatio),
@@ -133,27 +105,7 @@ class NCC(nn.Module):
         e1R6 = self.e1ReLu2(e1B6)
         e1D6 = self.e2Drouput2(e1R6)
 
-        e1L7 = self.e1Linear2(e1D6).view(BatchSize, self.sizeClassfLayer, DataSize)
-        e1B7 = self.e1BatchNorm2(e1L7).view(BatchSize, DataSize, self.sizeClassfLayer)                        
-        e1R7 = self.e1ReLu2(e1B7)
-        e1D7 = self.e2Drouput2(e1R7)
-
-        e1L8 = self.e1Linear2(e1D7).view(BatchSize, self.sizeClassfLayer, DataSize)
-        e1B8 = self.e1BatchNorm2(e1L8).view(BatchSize, DataSize, self.sizeClassfLayer)                        
-        e1R8 = self.e1ReLu2(e1B8)
-        e1D8 = self.e2Drouput2(e1R8)
-
-        e1L9 = self.e1Linear2(e1D8).view(BatchSize, self.sizeClassfLayer, DataSize)
-        e1B9 = self.e1BatchNorm2(e1L9).view(BatchSize, DataSize, self.sizeClassfLayer)                        
-        e1R9 = self.e1ReLu2(e1B9)
-        e1D9 = self.e2Drouput2(e1R9)
-
-        e1L0 = self.e1Linear2(e1D9).view(BatchSize, self.sizeClassfLayer, DataSize)
-        e1B0 = self.e1BatchNorm2(e1L0).view(BatchSize, DataSize, self.sizeClassfLayer)                        
-        e1R0 = self.e1ReLu2(e1B0)
-        e1D0 = self.e2Drouput2(e1R0)
-
-        finalEmbLayer = torch.mean(e1D0, 1)
+        finalEmbLayer = torch.mean(e1D6, 1)
         # r = self.embedLayer(xyval)
         # finalEmbLayer = torch.mean(r, 1)
 
@@ -238,41 +190,5 @@ classLabel = {'person': 0, 'chair': 1, 'car': 2, 'dog': 3, 'bottle': 4, 'cat': 5
                            'bicycle': 13, 'horse': 14, 'motorbike': 15, 'diningtable': 16, 'cow': 17, 'train': 18,
                            'bus': 19}
 
-def ExtractDataForVector():
-    FileName = "resnetModelFeatureVector.json"
-    Dataset = []
-    with open(FileName, "r") as DataReader:
-        for line in DataReader:
-            data = json.loads(line)
-            Dataset.append(data)
-
-    Dataset = np.array(Dataset)
-    namelist = np.array([s["className"] for s in Dataset])
-    NCCjsonDict = {}
-    for className in classLabel.keys():
-        classdata = Dataset[namelist == className]
-        if classdata.any():
-            TrainX, TrainY = returnTorchForVector(classdata)
-            NCCjsonDict[className] = {"TrainX": TrainX, "TrainY": TrainY}
-        else:
-            continue
-    return NCCjsonDict
-
-def testForVector():
-    NCCjsonDict = ExtractDataForVector()
-    CausalDict = {}
-    model = torch.load('./model/NCC_model_deep.pt')
-    model.eval()
-    with torch.no_grad():
-        for className, data in NCCjsonDict.items():
-            print(className, "...")
-            InputX = data["TrainX"]
-            InputY = data["TrainY"]
-            print(InputX.shape)
-            _, prob = model(InputX.cuda().float(), InputY.cuda().float())
-            CausalDict[className] = prob.data.cpu().numpy()
-    with open("./CausalDict.pickle", "wb") as fp:
-        pickle.dump(CausalDict, fp)
-
 if __name__ == '__main__':
-    testForVector()
+    testNCC()
