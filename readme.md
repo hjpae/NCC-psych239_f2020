@@ -1,19 +1,17 @@
-Recognizing Causal Features Using Machine Learning Model
+Recognizing Causal Features Using Machine Learning
 =============
 
 ## Introduction 
-&nbsp;&nbsp;Causation have been numerous times. It is crucial to reveal the nature of 
+&nbsp;&nbsp;*What came first, the chicken or the egg?* Inferring proper causality of a given situation has been an old riddle from every domain of science. It is crucial to discover proper causal relationship more than just correlation to give robust explanation on why such things happen in the real world, however, is intricate to pin down particulars. Emerging machine learning techniques could become a breakthrough for the hardships of causal inference. Using informational attribute of causal relationship, recognizing causality could be done by building and training a proper classification model. In this study, we would like to explore discovering causal relationship using machine learning, by introducing the notion of Neural Causation Coefficient(NCC)[ref1]. NCC has been proposed as a highly competitive model on visual recognizing task by discovering causal dependence between an object and its features from image data. By detecting such causal signals in image, the model successfully determines what the object shown from the image is.
 
-&nbsp;&nbsp;In this study, we follow the notion of Neural causation coefficient(NCC)[ref] to build and train a model that finds out causality. This model has been proposed as a highly competitive method on visual recognizing task by discovering causal dependence from image data, capturing the causal relationship between an object and its features. By detecting such causal signals in image, the model successfully determines what the object shown from the image is. 
+(fig1.png) 
 
-&nbsp;&nbsp;Here, an object and its features are considered as being connected under causal relationship. As from example shown from Figure 1, we can consider the feature wheel is causally dependent to the object car. We can define causal relationship even on the data without time information, by using the idea of causal intervention. This idea starts from the intuition based on general fact that there could be many different objects which contains wheel, such as bicycle, bus or truck, but it is hard to say a car is an object without wheel under normal condition. That is, the presence of car can guarantee the presence of wheel, while the presence of wheel only by itself cannot guarantee the presence of car. This indicates the expectation of wheel when car is present is not only conditional but also interventional, while the expectation of car when wheel is present could be only considered as conditional. From the definition of cause and effect, the causal power is identical with interventional power, which means we are always possible to modify the effect by modifying the cause[fn1]. Thus, it is sufficient to count the interventional expectation of feature wheel when object car is present as causal power. To sum up, we can consider car causes wheel, while wheel cannot cause car. 
+&nbsp;&nbsp;Here, we define causal relationship using the idea of causal intervention<sup>[1](#fn1)</sup>. An *object* and its *features* are considered as being connected under causal relationship. From **Figure 1**, we can consider the feature *wheel* is causally dependent to the object *car*. This idea starts from the intuition based on general fact that there could be many different objects which contains *wheel*, such as *bicycle*, *bus* or *truck*, but it is hard to say a *car* is an object without *wheel* under normal condition. That is, the presence of car can guarantee the presence of wheel, while the presence of wheel only by itself cannot guarantee the presence of car. This indicates the expectation of wheel when car is present is not only conditional but also interventional, while the expectation of car when wheel is present could be only considered as conditional. From the definition of cause and effect, the causal power is identical with interventional power, which means we are always possible to modify the effect by modifying the cause<sup>[2](#fn2)</sup>. Thus, it is sufficient to count the interventional expectation of feature wheel when object car is present as causal power. To sum up, we can consider car causes wheel, while wheel cannot cause car. 
 
-&nbsp;&nbsp;Interventional expectation from causal relationship is much robust than just correlation. When gives explanations on related probability distributions, while correlation does not guarantee 
-thus allowing the model much more information when capturing the causal signals. 
+&nbsp;&nbsp;Interventional expectation from causal relationship is much more robust than just correlation. Causal inference further gives explanations about the relationship and dependency among other similar features, while correlation does not guarantee existence of such dependency. This enables the model to predict much more information when capturing the causal signals. After training an inference model distinguishing cause and effect, the model could be used on various tasks over other domains than visual recognizing task. One example we can expect is to detect causal connectivity, or effective connectome, from brain activity data. When the model successfully provides answer to what caused what, we can figure out more significant and robust explanation on the brain activity than from conventional time series correlation analysis<sup>[3](#fn3)</sup>. 
 
-&nbsp;&nbsp;By defining model discriminating the cause-effect, we can explain what the cause is and what is the effect to mere situations. For example, to detect causal connectivity (effective connectome) from brain activity data. 
+&nbsp;&nbsp;In this study, we will explore NCC with modified architectures. We propose Deep NCC and Residual NCC model to increase performance of original NCC. 
 
-<sup>[1](#fn1)</sup>
 
 ## Methods 
 &nbsp;&nbsp;In this study, we build three different neural network architectures that determines causal signals. Each model is structured under different architecture: fully-connected linear, fully-connected deep linear, and linear with residual blocks. The models are trained under artificially generated training dataset. After training, each model is tested by predicting cause-effect scenarios of the test dataset. Finally, test accuracy is measured by correct count / test count ratio. We use test accuracy to compare performance of models. 
@@ -42,7 +40,14 @@ thus allowing the model much more information when capturing the causal signals.
 
 
 ## References 
+[^ref1]: 
+
 
 
 #### Footnotes
-<a name="fn1">[1]</a> This relationship could be illustrated more precisely by introducing ‘do-operator’[ref], where cause and effect are connected with ‘do-operator’ while mere correlation lacks such relationship. Do-operator possible to the counterfactuals, where 
+<a name="fn1">[1]</a>: Note that the causality here does not require time series data to be captured. Interventional causal power is defined from the effects of 'do-operators', which naturally involves sequence under time but can be formulated without measurement of exact time points. 
+
+<a name="fn2">[2]</a>: This relationship could be illustrated more precisely by introducing 'do-operator'[ref2], which indicates the relationship where effect must happen after when *doing* the cause. According to J. Pearl, causation is strictly distinguished from correlation, since correlation lacks such strong relationship. The principle of do-operator also enables to figure out the possible counterfactuals of a causal scenario. 
+
+<a name="fn3">[3]</a>: One intriguing theory involving causal connection of brain activity would be Integrated Information Theory of consciousness(IIT)[ref3]. This theory explains the generation mechanism of subjective consciousness by proposing intrinsic causal information of neuronal network. Practical issue of this theory would be the difficulty on discovering exact causal mechanisms from observing the brain activity. However, if it turns out possible to uncover causal relationships among brain elements, treating subjective consciousness as scientific objective would be possible under IIT. 
+
