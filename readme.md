@@ -10,7 +10,7 @@ Recognizing Causal Features Using Machine Learning
   <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/fig1(Lopez-Paz%202017).PNG" width="70%" height="70%">
 </p>
 
-**Figure 1.** Causal connection between object and its feature. Figure from *Discovering causal signals in images (Lopez-Paz et al., 2017)*
+**Figure 1.** Causal connection between object and its feature. Figure from *Discovering causal signals in images (Lopez-Paz et al., 2017)*. 
 
 &nbsp;&nbsp;Here, we define causal relationship using the idea of causal intervention<sup>[1](#fn1)</sup>[ref2]. An *object* and its *features* are considered as being connected under causal relationship. From **Figure 1**, we can consider the feature *wheel* is causally dependent to the object *car*. This idea starts from the intuition based on general fact that there could be many different objects which contains *wheel*, such as *bicycle*, *bus* or *truck*, but it is hard to say a *car* is an object without *wheel* under normal condition. That is, the presence of car can guarantee the presence of wheel, while the presence of wheel only by itself cannot guarantee the presence of car. This indicates the expectation of wheel when car is present is not only conditional but also interventional, while the expectation of car when wheel is present could be only considered as conditional. From the definition of cause and effect, the causal power is identical with interventional power, which means we are always possible to modify the effect by modifying the cause<sup>[2](#fn2)</sup>. Thus, it is sufficient to count the interventional expectation of feature wheel when object car is present as causal power. To sum up, we can consider car causes wheel, while wheel cannot cause car. 
 
@@ -29,7 +29,7 @@ Recognizing Causal Features Using Machine Learning
   <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/binaryclassification(Guyon%202013).PNG" width="50%" height="50%">
 </p>
 
-**Figure 2.** Distinguishable distributions of each different causal pairs. Figure from Cause-effect pairs kaggle competition, *Guyon I. 2013*
+**Figure 2.** Distinguishable distributions of each different causal pairs. Figure from Cause-effect pairs Kaggle competition, *Guyon I. 2013*. 
 
 &nbsp;&nbsp;Each data point pairs are originated from a distribution under interventional expectation. That is, the causal direction of a pair (X<sub>i</sub>, Y<sub>i</sub>) depends on the causal direction of its underlying distribution (X, Y). **Figure 2** illustrates each different distribution having its own causal direction. Using such data for training, the model learns how to classify a data point pair into appropriate distribution. To sum up, model training from this study follows the logic of binary classification. 
 
@@ -37,18 +37,40 @@ Recognizing Causal Features Using Machine Learning
 
 * **Training dataset.** For training dataset, the most important is to properly featurize each data points while generating them. We apply Gaussian mixture model to keep each causal features' distribution consistent. 30,000 *data points* in total are generated under 128 different causal *feature* distributions. The length of a feature, or the number of data point a feature carries, is set to vary from 100 to 1,000, and is denoted as *m* from **Figure 3**. 
 
-
 * **Testing dataset.** Testing dataset is used to evaluate the model accuracy. We use the dataset collected from the study[ref5], which could be downloaded from <http://webdav.tuebingen.mpg.de/cause-effect/>. All data points are collected from the real-world observation, and each feature is labeled under its ground-truth causal direction. For instance, if X stands for altitude and Y stands for temperature, then all data points included in such feature distribution is labeled as binary value 1, since altitude causes temperature (X → Y). 
 
-
 ### Models 
-&nbsp;&nbsp;Our model follows the structure of Neural causation coefficient (NCC)[ref]. All model realizations from this study are based on the paper[ref] and codes from GitHub repository[ref]. 
+&nbsp;&nbsp;Our model follows the structure of Neural causation coefficient (NCC). All model realizations from this study are based on the paper[] and codes from GitHub repository[ref]. Both embedding and classifier layers are consisted of 4 sequential neural network activation functions from PyTorch: linear unit, 1D batch normalization, rectified linear unit, and then dropout unit with dropout rate of 0.75. All layers have 100 neurons and are fully connected. 
 
-* NCC
+* **Neural Causation Coefficient (NCC)** 
 
-* residual NCC
+<p align="center">
+  <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/ncc-orig.png" width="100%" height="100%">
+</p>
 
-* deep NCC
+**Figure 3.** Architecture of Neural Causation Coefficient. *n* is the number of neurons, and *m* is the number of features. Original design is from *Discovering causal signals in images (Lopez-Paz et al., 2017)*. 
+
+&nbsp;&nbsp;This feed-forward model is built with two fully connected embedding layers and two fully connected classifier layers. Embedding layers matches the information between data points and its feature, and classifier layers aim to classify binarized causal information of each features. Under embedding layers, each point from a causal feature distribution pass through its individual neural network layer, then averaged all together. Averaged information then passes two classifier layers. Output is calculated from logit into probability by Softmax function. 
+
+* **Deep NCC** 
+
+<p align="center">
+  <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/ncc-deep.png" width="100%" height="100%">
+</p>
+
+**Figure 4.** Architecture of Neural Causation Coefficient with deeper layers. *n* is the number of neurons, and *m* is the number of features. 
+
+&nbsp;&nbsp;Deep NCC is a multi-layered variant of NCC. It has same structure but 8 layers for each embedding and classifier layers. 
+
+* **Residual NCC** (Fig.4)
+
+<p align="center">
+  <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/ncc-res.png" width="100%" height="100%">
+</p>
+
+**Figure 5.** Architecture of Neural Causation Coefficient with residual blocks. *n* is the number of neurons, and *m* is the number of features. 
+
+
 
 
 ## Results 
