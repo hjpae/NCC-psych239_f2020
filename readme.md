@@ -18,13 +18,19 @@ thus allowing the model much more information when capturing the causal signals.
 ## Methods 
 &nbsp;&nbsp;In this study, we build three different neural network architectures that determines causal signals. Each model is structured under different architecture: fully-connected linear, fully-connected deep linear, and linear with residual blocks. The models are trained under artificially generated training dataset. After training, each model is tested by predicting cause-effect scenarios of the test dataset. Finally, test accuracy is measured by correct count / test count ratio. We use test accuracy to compare performance of models. 
 
-&nbsp;&nbsp; Our model follows the structure of Neural causation coefficient (NCC)[ref]. All model realizations from this study are based on the paper[ref] and codes from GitHub repository[ref]. 
+### Datasets 
+&nbsp;&nbsp;Our dataset is consisted of (X<sub>i</sub>, Y<sub>i</sub>) pairs where each data points follow distribution under causal link between X and Y. For example, if X is the altitude and Y is the temperature, we can put a data point pair (X<sub>i</sub>, Y<sub>i</sub>) as ‘X<sub>i</sub> causes Y<sub>i</sub>’ according to interventional causal power. For each pair we show causal direction of X and Y by assigning binary values. If X causes Y (X → Y), the data point pair is labeled as causal with binary value of 1. If Y causes X (X ← Y), the data point pair is labeled as anti-causal with binary value of 0. The dataset also contains noise pair with binary value of 0.5, which refers to (X, Y) pair not having any causal relationship. Each data point pairs are originated from a distribution under interventional expectation. That is, the causal direction of a pair (X<sub>i</sub>, Y<sub>i</sub>) depends on the causal direction of its underlying distribution (X, Y). Figure # illustrates each different distribution having its own causal direction. Using such data for training, the model learns how to classify a data point pair into appropriate distribution. To sum up, model training from this study follows the logic of binary classification. 
+
+### Models 
+&nbsp;&nbsp;Our model follows the structure of Neural causation coefficient (NCC)[ref]. All model realizations from this study are based on the paper[ref] and codes from GitHub repository[ref]. 
 
 * NCC
 
 * residual NCC
 
 * deep NCC
+
+### Model training 
 
 
 ## Results 
