@@ -70,7 +70,7 @@ Recognizing Causal Features Using Machine Learning
 
 **Figure 5.** Architecture of Neural Causation Coefficient with residual blocks. *n* is the number of neurons, and *m* is the number of features. 
 
-
+&nbsp;&nbsp;Residual NCC also share same overall structure with original NCC, but has residual blocks. Each block repeats same number of previous layers, and is capped with ReLU. Note the information from previous layers gets repeated as residual. 
 
 
 ## Results 
