@@ -6,7 +6,11 @@ Recognizing Causal Features Using Machine Learning
 
 &nbsp;&nbsp;Emerging machine learning techniques could become a breakthrough for the hardships of causal inference. Using informational attribute of causal relationship, recognizing causality could be done by building and training a proper classification model. In this study, we would like to explore discovering causal relationship using machine learning, by introducing the notion of Neural Causation Coefficient(NCC)[ref1]. NCC has been proposed as a highly competitive model on visual recognizing task by discovering causal dependence between an object and its features from image data. By detecting such causal signals in image, the model successfully determines what the object shown from the image is.
 
-(fig1.png) 
+<p align="center">
+  <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/fig1(Lopez-Paz%202017).PNG" width="70%" height="70%">
+</p>
+
+**Figure 1.** Causal connection between object and its feature. Figure from *Discovering causal signals in images (Lopez-Paz et al., 2017)*
 
 &nbsp;&nbsp;Here, we define causal relationship using the idea of causal intervention<sup>[1](#fn1)</sup>. An *object* and its *features* are considered as being connected under causal relationship. From **Figure 1**, we can consider the feature *wheel* is causally dependent to the object *car*. This idea starts from the intuition based on general fact that there could be many different objects which contains *wheel*, such as *bicycle*, *bus* or *truck*, but it is hard to say a *car* is an object without *wheel* under normal condition. That is, the presence of car can guarantee the presence of wheel, while the presence of wheel only by itself cannot guarantee the presence of car. This indicates the expectation of wheel when car is present is not only conditional but also interventional, while the expectation of car when wheel is present could be only considered as conditional. From the definition of cause and effect, the causal power is identical with interventional power, which means we are always possible to modify the effect by modifying the cause<sup>[2](#fn2)</sup>. Thus, it is sufficient to count the interventional expectation of feature wheel when object car is present as causal power. To sum up, we can consider car causes wheel, while wheel cannot cause car. 
 
