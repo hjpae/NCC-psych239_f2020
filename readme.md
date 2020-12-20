@@ -29,7 +29,7 @@ Recognizing Causal Features Using Machine Learning
   <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/binaryclassification(Guyon%202013).PNG" width="50%" height="50%">
 </p>
 
-**Figure 2.** Distinguishable distributions of each different causal pairs. Figure from Cause-effect pairs Kaggle competition, *Guyon I. 2013*. 
+**Figure 2.** Distinguishable distributions of each different causal pairs. X → Y indicates causal distribution, where Y → X indicates anti-causal distribution. Figure from Cause-effect pairs Kaggle competition, *Guyon I. 2013*. 
 
 &nbsp;&nbsp;Each data point pairs are originated from a distribution under interventional expectation. That is, the causal direction of a pair (X<sub>i</sub>, Y<sub>i</sub>) depends on the causal direction of its underlying distribution (X, Y). **Figure 2** illustrates each different distribution having its own causal direction. Using such data for training, the model learns how to classify a data point pair into appropriate distribution. To sum up, model training from this study follows the logic of binary classification. 
 
