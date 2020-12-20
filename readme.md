@@ -16,7 +16,7 @@ Recognizing Causal Features Using Machine Learning
 
 &nbsp;&nbsp;Interventional expectation from causal relationship is much more robust than just correlation. Causal inference further gives explanations about the relationship and dependency among other similar features, while correlation does not guarantee existence of such dependency. This enables the model to predict much more information when capturing the causal signals. After training an inference model distinguishing cause and effect, the model could be used on various tasks over other domains than visual recognizing task. One example we can expect is to detect causal connectivity, or effective connectome, from brain activity data. When the model successfully provides answer to what caused what, we can figure out more significant and robust explanation on the brain activity than from conventional time series correlation analysis<sup>[3](#fn3)</sup>. 
 
-&nbsp;&nbsp;In this study, we will explore NCC with modified architectures. We propose Deep NCC and Residual NCC model to increase performance of original NCC. 
+&nbsp;&nbsp;In this study, we will explore NCC with modified architectures. We also propose Deep NCC and Residual NCC model to increase performance of original NCC. By comparing Deep NCC with others, we are going to check if causality classifier shows better performance when trained with deeper layers, even though it demands more training time and computing power. Another method of increasing accuracy is to add residual block on the network. This method is well known for acquiring high accuracy with less time and computing power compared with simple deeper networks[ref]. We generate residual block on the original NCC to compare if the performance significantly increases as from other models used from visual recognition tasks.
 
 
 ## Methods 
@@ -60,7 +60,7 @@ Recognizing Causal Features Using Machine Learning
 
 **Figure 4.** Architecture of Neural Causation Coefficient with deeper layers. *n* is the number of neurons, and *m* is the number of features. 
 
-&nbsp;&nbsp;Deep NCC is a multi-layered variant of NCC. It has same structure but 8 layers for each embedding and classifier layers. 
+&nbsp;&nbsp;Deep NCC is a multi-layered variant of NCC. It has same overall structure but 8 layers for each embedding and classifier layers. 
 
 * **Residual NCC** (Fig.4)
 
