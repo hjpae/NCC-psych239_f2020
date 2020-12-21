@@ -22,30 +22,6 @@ class NCC(nn.Module):
         self.e1ReLu2 = nn.ReLU()
         self.e2Drouput2 = nn.Dropout(self.dropOutRatio)
 
-        self.embedLayer = nn.Sequential(
-            nn.Linear(2, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-        )
-
-        self.deepembed = nn.Sequential( 
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio), # 3*4 
-        )
-
         self.classLayer = nn.Sequential(
             nn.Linear(self.sizeEmbLayer, self.sizeClassfLayer),
             nn.BatchNorm1d(self.sizeClassfLayer),
@@ -83,32 +59,57 @@ class NCC(nn.Module):
         BatchSize = xyval.shape[0]
         DataSize = xyval.shape[1]
         
-        # first embed layer 
+        # deeper embed layer 
+        # need to define one by one to keep dimension
         e1L1 = self.e1Linear1(xyval).view(BatchSize, self.sizeEmbLayer, DataSize)
         e1B1 = self.e1BatchNorm1(e1L1).view(BatchSize, DataSize, self.sizeEmbLayer)
         e1R1 = self.e1ReLu1(e1B1)
-        e1D1 = self.e2Drouput1(e1R1)
-        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeClassfLayer, DataSize)
-        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeClassfLayer)                        
+        e1D1 = self.e2Drouput1(e1R1) #1
+
+        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeEmbLayer)                        
         e1R2 = self.e1ReLu2(e1B2)
-        e1D2 = self.e2Drouput2(e1R2)
+        e1D2 = self.e2Drouput2(e1R2) #2
+
+        e1L3 = self.e1Linear2(e1D2).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B3 = self.e1BatchNorm2(e1L3).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R3 = self.e1ReLu2(e1B3)
+        e1D3 = self.e2Drouput2(e1R3) #3
+
+        e1L4 = self.e1Linear2(e1D3).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B4 = self.e1BatchNorm2(e1L4).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R4 = self.e1ReLu2(e1B4)
+        e1D4 = self.e2Drouput2(e1R4) #4
+
+        e1L5 = self.e1Linear2(e1D4).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B5 = self.e1BatchNorm2(e1L5).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R5 = self.e1ReLu2(e1B5)
+        e1D5 = self.e2Drouput2(e1R5) #5
+
+        e1L6 = self.e1Linear2(e1D5).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B6 = self.e1BatchNorm2(e1L6).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R6 = self.e1ReLu2(e1B6)
+        e1D6 = self.e2Drouput2(e1R6) #6
+
+        e1L7 = self.e1Linear2(e1D6).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B7 = self.e1BatchNorm2(e1L7).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R7 = self.e1ReLu2(e1B7)
+        e1D7 = self.e2Drouput2(e1R7) #7
+
+        e1L8 = self.e1Linear2(e1D7).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B8 = self.e1BatchNorm2(e1L8).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R8 = self.e1ReLu2(e1B8)
+        e1D8 = self.e2Drouput2(e1R8) #8
         
-        # deeper embed layer
-        deep1 = self.deepembed(e1D2) #4
-        deep2 = self.deepembed(deep1) #8
-
-        # mean connection 
-        finalEmbLayer = torch.mean(deep2, 1)
-
-        # classification layer 
-        classLayer = self.classLayer(finalEmbLayer)
+        # mean of embedlayer
+        finalEmbLayer = torch.mean(e1D4, 1)
         
         # deeper classification layer
-        deep3 = self.deepclass(classLayer) #12
-        deep4 = self.deepclass(deep3) #16
+        deepclass1 = self.deepclass(finalEmbLayer) #8+4=12
+        deepclass2 = self.deepclass(deepclass1) #8+4+4=16
         
         # softmax output 
-        logits = self.logits(deep4)
+        logits = self.logits(deepclass2)
         prob = torch.sigmoid(logits)
         return logits, prob
 
@@ -157,7 +158,7 @@ def returnTorchForVector(listObj):
 
 def testNCC():
     tubDataset = "./data/tubehengenDataFormat.json"
-    model = torch.load('./model/NCC_model_deep4.pt')
+    model = torch.load('./model/NCCdeep16.pt')
     model.eval()
     with torch.no_grad():
         with open(tubDataset, "r") as tubDataReader:

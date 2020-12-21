@@ -28,30 +28,6 @@ class NCC(nn.Module):
         self.e1ReLu2 = nn.ReLU()
         self.e2Drouput2 = nn.Dropout(self.dropOutRatio)
 
-        self.embedLayer = nn.Sequential(
-            nn.Linear(2, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-        )
-
-        self.deepembed = nn.Sequential( 
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio), # 3*4 
-        )
-
         self.classLayer = nn.Sequential(
             nn.Linear(self.sizeEmbLayer, self.sizeClassfLayer),
             nn.BatchNorm1d(self.sizeClassfLayer),
@@ -89,32 +65,57 @@ class NCC(nn.Module):
         BatchSize = xyval.shape[0]
         DataSize = xyval.shape[1]
         
-        # first embed layer 
+        # deeper embed layer 
+        # need to define one by one to keep dimension
         e1L1 = self.e1Linear1(xyval).view(BatchSize, self.sizeEmbLayer, DataSize)
         e1B1 = self.e1BatchNorm1(e1L1).view(BatchSize, DataSize, self.sizeEmbLayer)
         e1R1 = self.e1ReLu1(e1B1)
-        e1D1 = self.e2Drouput1(e1R1)
-        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeClassfLayer, DataSize)
-        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeClassfLayer)                        
+        e1D1 = self.e2Drouput1(e1R1) #1
+
+        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeEmbLayer)                        
         e1R2 = self.e1ReLu2(e1B2)
-        e1D2 = self.e2Drouput2(e1R2)
+        e1D2 = self.e2Drouput2(e1R2) #2
+
+        e1L3 = self.e1Linear2(e1D2).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B3 = self.e1BatchNorm2(e1L3).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R3 = self.e1ReLu2(e1B3)
+        e1D3 = self.e2Drouput2(e1R3) #3
+
+        e1L4 = self.e1Linear2(e1D3).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B4 = self.e1BatchNorm2(e1L4).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R4 = self.e1ReLu2(e1B4)
+        e1D4 = self.e2Drouput2(e1R4) #4
+
+        e1L5 = self.e1Linear2(e1D4).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B5 = self.e1BatchNorm2(e1L5).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R5 = self.e1ReLu2(e1B5)
+        e1D5 = self.e2Drouput2(e1R5) #5
+
+        e1L6 = self.e1Linear2(e1D5).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B6 = self.e1BatchNorm2(e1L6).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R6 = self.e1ReLu2(e1B6)
+        e1D6 = self.e2Drouput2(e1R6) #6
+
+        e1L7 = self.e1Linear2(e1D6).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B7 = self.e1BatchNorm2(e1L7).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R7 = self.e1ReLu2(e1B7)
+        e1D7 = self.e2Drouput2(e1R7) #7
+
+        e1L8 = self.e1Linear2(e1D7).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B8 = self.e1BatchNorm2(e1L8).view(BatchSize, DataSize, self.sizeEmbLayer)                        
+        e1R8 = self.e1ReLu2(e1B8)
+        e1D8 = self.e2Drouput2(e1R8) #8
         
-        # deeper embed layer
-        deep1 = self.deepembed(e1D2) #4
-        deep2 = self.deepembed(deep1) #8
-
-        # mean connection 
-        finalEmbLayer = torch.mean(deep2, 1)
-
-        # classification layer 
-        classLayer = self.classLayer(finalEmbLayer)
+        # mean of embedlayer
+        finalEmbLayer = torch.mean(e1D4, 1)
         
         # deeper classification layer
-        deep3 = self.deepclass(classLayer) #12
-        deep4 = self.deepclass(deep3) #16
+        deepclass1 = self.deepclass(finalEmbLayer) #8+4=12
+        deepclass2 = self.deepclass(deepclass1) #8+4+4=16
         
         # softmax output 
-        logits = self.logits(deep4)
+        logits = self.logits(deepclass2)
         prob = torch.sigmoid(logits)
         return logits, prob
 
@@ -145,9 +146,9 @@ def returnTorch(listObj):
 
 if __name__ == '__main__':
     batchSize = 256 # whole data size = 30000 / minibatch size 2n = 32
-    fileName = "C:/Users/Kardien/Documents/python/psych239_f2020/data/causal-data-gen-30K.json-original"
+    fileName = "./data/causal-data-gen-30K.json-original"
     trainSplitRatio = 0.7
-    iterVal = 25 # should be 10000 ... 85.3 epochs
+    iterVal = 25 # epoch iteration
     intLrRate = 0.0001
 
     ''' *************************  '''
@@ -173,13 +174,12 @@ if __name__ == '__main__':
     model = NCC()
     model = model.cuda()
 
-    writer = SummaryWriter('runs/NCCdeep4')
+    writer = SummaryWriter('runs_new/NCCdeep16')
 
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.RMSprop(params=model.parameters(), lr=intLrRate)
-    # optimizer = torch.optim.SGD(params=model.parameters(), lr=intLrRate, momentum=0.9, weight_decay=5e-4)
-    # optimizer = torch.optim.Adam(params=model.parameters(), lr=intLrRate)
     ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
+
     model.train()
     test_lowest_loss = 1
     count = 0
@@ -187,13 +187,13 @@ if __name__ == '__main__':
     for itr in range(iterVal):
         model.train()
         for size, data in train_dataset.items():
+            random.shuffle(data) # batch shuffle(?)
             for idx in range(0, len(data), batchSize):
                 trainX, trainY, labels = returnTorch(data[idx: idx + batchSize])
 
                 optimizer.zero_grad()
 
                 logits, prob = model(trainX.cuda().float(), trainY.cuda().float())
-                # loss = criterion(logits.cuda().float(),  labels.t().cuda().float())
                 loss = criterion(prob.cuda().float(), labels.cuda().float())
                 writer.add_scalar('Train loss', loss.item(), count)
                 loss.backward()
@@ -213,13 +213,12 @@ if __name__ == '__main__':
                     losslist.append(loss.item())
             print("itr: ", itr, "loss: ", np.mean(losslist))
             writer.add_scalar("Test loss", np.mean(losslist), itr)
+            
             if np.mean(losslist) < test_lowest_loss:
                 test_lowest_loss = np.mean(losslist)
-                print("test_lowest_lost:", test_lowest_loss, " saving model ..")
-                torch.save(model, './model/NCC_model_deep4.pt')
-                writer.add_scalar("Tubengen accuracy", testNCC(), itr)
+                print("test_lowest_loss:", test_lowest_loss, " saving model ..")
+                torch.save(model, './model/NCCdeep16.pt')
+                writer.add_scalar("Tubingen Test accuracy", testNCC(), itr)
+                
                 if testNCC() > highest_acc:
-                    torch.save(model, './model/NCC_model_deep4.pt')
-        # if (itr % 10 == 0):
-        #     for param_group in optimizer.param_groups:
-        #         param_group['lr'] *= 0.1
+                    torch.save(model, './model/NCCdeep16.pt')

@@ -21,21 +21,6 @@ class NCC(nn.Module):
         self.e1ReLu2 = nn.ReLU()
         self.e2Drouput2 = nn.Dropout(self.dropOutRatio)
 
-        self.embedLayer = nn.Sequential(
-            nn.Linear(2, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-        )
-        
-        self.resembedLayer = nn.Sequential(
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-        )
-
         self.classLayer = nn.Sequential(
             nn.Linear(self.sizeEmbLayer, self.sizeClassfLayer),
             nn.BatchNorm1d(self.sizeClassfLayer),
@@ -47,8 +32,15 @@ class NCC(nn.Module):
             nn.Dropout(self.dropOutRatio),
         )
 
+        self.resembedLayer = nn.Sequential(
+            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
+            nn.BatchNorm1d(self.sizeEmbLayer),
+            nn.ReLU(),
+            nn.Dropout(self.dropOutRatio),
+        )
+
         self.resclassLayer = nn.Sequential(
-            nn.Linear(self.sizeEmbLayer, self.sizeClassfLayer),
+            nn.Linear(self.sizeClassfLayer, self.sizeClassfLayer),
             nn.BatchNorm1d(self.sizeClassfLayer),
             nn.ReLU(),
             nn.Dropout(self.dropOutRatio),
@@ -60,23 +52,32 @@ class NCC(nn.Module):
         xyval = torch.cat([xVal, yVal], 2)
         BatchSize = xyval.shape[0]
         DataSize = xyval.shape[1]
-        x = self.e1Linear1(xyval).view(BatchSize, self.sizeEmbLayer, DataSize)
-        x = self.e1BatchNorm1(x).view(BatchSize, DataSize, self.sizeEmbLayer)
-        x = self.e1ReLu1(x)
-        x = self.e2Drouput1(x)
+
+        # first embedded layer
+        e1L1 = self.e1Linear1(xyval).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B1 = self.e1BatchNorm1(e1L1).view(BatchSize, DataSize, self.sizeEmbLayer)
+        e1R1 = self.e1ReLu1(e1B1)
+        e1D1 = self.e2Drouput1(e1R1)
         
-        # residual block - embedded layer 
+        # second embedded layer 
+        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeEmbLayer)
+        e1R2 = self.e1ReLu2(e1B2)
+        x = self.e2Drouput2(e1R2)
+        
+        # residual block for embedded layer 
         res_emb = x
         x = self.resembedLayer(x)
         x = x + res_emb
         out = self.e1ReLu1(x)
         
-        # averaging output from embed layer 
+        # averaging the output from embed layer 
         out_emb = torch.mean(out, 1)
-
+        
+        # classification layer 
         k = self.classLayer(out_emb)
 
-        # residual block - classification layer
+        # residual block for classification layer
         res_class = k
         k = self.resclassLayer(k)
         k = k + res_class
@@ -132,7 +133,7 @@ def returnTorchForVector(listObj):
 
 def testNCC():
     tubDataset = "./data/tubehengenDataFormat.json"
-    model = torch.load('./model/NCC_model_res2.pt')
+    model = torch.load('./model/NCCres.pt')
     model.eval()
     with torch.no_grad():
         with open(tubDataset, "r") as tubDataReader:

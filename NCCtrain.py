@@ -25,14 +25,14 @@ class NCC(nn.Module):
         self.e1ReLu2 = nn.ReLU()
         self.e2Drouput2 = nn.Dropout(self.dropOutRatio)
 
-        self.embedLayer = nn.Sequential(
-            nn.Linear(2, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-        )
+        #self.embedLayer = nn.Sequential(
+        #    nn.Linear(2, self.sizeEmbLayer),
+        #    nn.ReLU(),
+        #    nn.Dropout(self.dropOutRatio),
+        #    nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
+        #    nn.ReLU(),
+        #    nn.Dropout(self.dropOutRatio),
+        #)
 
         self.classLayer = nn.Sequential(
             nn.Linear(self.sizeEmbLayer, self.sizeClassfLayer),
@@ -58,8 +58,8 @@ class NCC(nn.Module):
         e1D1 = self.e2Drouput1(e1R1)
         
         # second embedded layer 
-        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeClassfLayer, DataSize)
-        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeClassfLayer)
+        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeEmbLayer)
         e1R2 = self.e1ReLu2(e1B2)
         e1D2 = self.e2Drouput2(e1R2)
 
@@ -102,10 +102,10 @@ def returnTorch(listObj):
     return torch.from_numpy(X), torch.from_numpy(Y), torch.from_numpy(Label)
 
 if __name__ == '__main__':
-    batchSize = 32 # whole data size = 30000 / minibatch size 2n = 32
+    batchSize = 256 # 128*2(2 is for x and y), 'batch' = 'one causal feature' / original minibatch size 2n = 32
     fileName = "./data/causal-data-gen-30K.json-original"
     trainSplitRatio = 0.7
-    iterVal = 100 # should be 10000 ... 85.3 epochs
+    iterVal = 25 # should be epoch iterataion... 
     intLrRate = 0.0001
 
     ''' *************************  '''
@@ -131,27 +131,31 @@ if __name__ == '__main__':
     model = NCC()
     model = model.cuda()
 
-    writer = SummaryWriter('runs/NCClinear32_100')
+    writer = SummaryWriter('runs_new/NCCorig')
 
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.RMSprop(params=model.parameters(), lr=intLrRate)
-    # optimizer = torch.optim.SGD(params=model.parameters(), lr=intLrRate, momentum=0.9, weight_decay=5e-4)
-    # optimizer = torch.optim.Adam(params=model.parameters(), lr=intLrRate)
     ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
+    
     model.train()
-    test_lowest_loss = 1
+    test_lowest_loss = 0
     count = 0
-    highest_acc = 0
+    highest_acc = 1
+    
     for itr in range(iterVal):
         model.train()
+        #random.shuffle(train_dataset)
         for size, data in train_dataset.items():
+            random.shuffle(data) # extra shuffling per batch itertation!!!!
+            #for num_epoch in range(epochs):
+            #random.shuffle(data_train)
+            #train_loss = train(~~~)
             for idx in range(0, len(data), batchSize):
                 trainX, trainY, labels = returnTorch(data[idx: idx + batchSize])
 
                 optimizer.zero_grad()
 
                 logits, prob = model(trainX.cuda().float(), trainY.cuda().float())
-                # loss = criterion(logits.cuda().float(),  labels.t().cuda().float())
                 loss = criterion(prob.cuda().float(), labels.cuda().float())
                 writer.add_scalar('Train loss', loss.item(), count)
                 loss.backward()
@@ -171,13 +175,12 @@ if __name__ == '__main__':
                     losslist.append(loss.item())
             print("itr: ", itr, "loss: ", np.mean(losslist))
             writer.add_scalar("Test loss", np.mean(losslist), itr)
-            if np.mean(losslist) < test_lowest_loss:
+            
+            if np.mean(losslist) > test_lowest_loss:
                 test_lowest_loss = np.mean(losslist)
-                print("test_lowest_lost:", test_lowest_loss, " saving model ..")
-                torch.save(model, './model/NCClinear32_100.pt')
-                writer.add_scalar("Tubengen accuracy", testNCC(), itr)
-                if testNCC() > highest_acc:
-                    torch.save(model, './model/NCClinear32_100.pt')
-        # if (itr % 10 == 0):
-        #     for param_group in optimizer.param_groups:
-        #         param_group['lr'] *= 0.1
+                print("test_lowest_loss:", test_lowest_loss, " saving model ..")
+                torch.save(model, './model/NCCorig.pt')
+                writer.add_scalar("Tubingen Test accuracy", testNCC(), itr)
+                
+                if testNCC() < highest_acc:
+                    torch.save(model, './model/NCCorig.pt')

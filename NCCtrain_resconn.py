@@ -27,21 +27,6 @@ class NCC(nn.Module):
         self.e1ReLu2 = nn.ReLU()
         self.e2Drouput2 = nn.Dropout(self.dropOutRatio)
 
-        self.embedLayer = nn.Sequential(
-            nn.Linear(2, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-        )
-        
-        self.resembedLayer = nn.Sequential(
-            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
-            nn.ReLU(),
-            nn.Dropout(self.dropOutRatio),
-        )
-
         self.classLayer = nn.Sequential(
             nn.Linear(self.sizeEmbLayer, self.sizeClassfLayer),
             nn.BatchNorm1d(self.sizeClassfLayer),
@@ -53,8 +38,15 @@ class NCC(nn.Module):
             nn.Dropout(self.dropOutRatio),
         )
 
+        self.resembedLayer = nn.Sequential(
+            nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
+            nn.BatchNorm1d(self.sizeEmbLayer),
+            nn.ReLU(),
+            nn.Dropout(self.dropOutRatio),
+        )
+
         self.resclassLayer = nn.Sequential(
-            nn.Linear(self.sizeEmbLayer, self.sizeClassfLayer),
+            nn.Linear(self.sizeClassfLayer, self.sizeClassfLayer),
             nn.BatchNorm1d(self.sizeClassfLayer),
             nn.ReLU(),
             nn.Dropout(self.dropOutRatio),
@@ -66,23 +58,32 @@ class NCC(nn.Module):
         xyval = torch.cat([xVal, yVal], 2)
         BatchSize = xyval.shape[0]
         DataSize = xyval.shape[1]
-        x = self.e1Linear1(xyval).view(BatchSize, self.sizeEmbLayer, DataSize)
-        x = self.e1BatchNorm1(x).view(BatchSize, DataSize, self.sizeEmbLayer)
-        x = self.e1ReLu1(x)
-        x = self.e2Drouput1(x)
+
+        # first embedded layer
+        e1L1 = self.e1Linear1(xyval).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B1 = self.e1BatchNorm1(e1L1).view(BatchSize, DataSize, self.sizeEmbLayer)
+        e1R1 = self.e1ReLu1(e1B1)
+        e1D1 = self.e2Drouput1(e1R1)
         
-        # residual block - embedded layer 
+        # second embedded layer 
+        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeEmbLayer)
+        e1R2 = self.e1ReLu2(e1B2)
+        x = self.e2Drouput2(e1R2)
+        
+        # residual block for embedded layer 
         res_emb = x
         x = self.resembedLayer(x)
         x = x + res_emb
         out = self.e1ReLu1(x)
         
-        # averaging output from embed layer 
+        # averaging the output from embed layer 
         out_emb = torch.mean(out, 1)
-
+        
+        # classification layer 
         k = self.classLayer(out_emb)
 
-        # residual block - classification layer
+        # residual block for classification layer
         res_class = k
         k = self.resclassLayer(k)
         k = k + res_class
@@ -120,9 +121,9 @@ def returnTorch(listObj):
 
 if __name__ == '__main__':
     batchSize = 256 # whole data size = 30000 / minibatch size 2n = 32
-    fileName = "C:/Users/Kardien/Documents/python/psych239_f2020/data/causal-data-gen-30K.json-original"
+    fileName = "./data/causal-data-gen-30K.json-original"
     trainSplitRatio = 0.7
-    iterVal = 25 # should be 10000 ... 85.3 epochs
+    iterVal = 25 # epoch iteration
     intLrRate = 0.0001
 
     ''' *************************  '''
@@ -148,12 +149,12 @@ if __name__ == '__main__':
     model = NCC()
     model = model.cuda()
 
-    writer = SummaryWriter('runs/NCCres2')
+    writer = SummaryWriter('runs_new/NCCres')
 
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.RMSprop(params=model.parameters(), lr=intLrRate)
-   
     ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
+
     model.train()
     test_lowest_loss = 1
     count = 0
@@ -161,6 +162,7 @@ if __name__ == '__main__':
     for itr in range(iterVal):
         model.train()
         for size, data in train_dataset.items():
+            #random.shuffle(data) # batch shuffle(?)
             for idx in range(0, len(data), batchSize):
                 trainX, trainY, labels = returnTorch(data[idx: idx + batchSize])
 
@@ -189,9 +191,9 @@ if __name__ == '__main__':
 
             if np.mean(losslist) < test_lowest_loss:
                 test_lowest_loss = np.mean(losslist)
-                print("test_lowest_lost:", test_lowest_loss, " saving model ..")
-                torch.save(model, './model/NCC_model_res2.pt')
-                writer.add_scalar("Tubengen accuracy", testNCC(), itr)
+                print("test_lowest_loss:", test_lowest_loss, " saving model ..")
+                torch.save(model, './model/NCCres.pt')
+                writer.add_scalar("Tubingen Test accuracy", testNCC(), itr)
 
                 if testNCC() > highest_acc:
-                    torch.save(model, './model/NCC_model_res2.pt')
+                    torch.save(model, './model/NCCres.pt')

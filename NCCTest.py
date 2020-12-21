@@ -16,10 +16,20 @@ class NCC(nn.Module):
         self.e1BatchNorm1 = nn.BatchNorm1d(self.sizeEmbLayer)
         self.e1ReLu1 = nn.ReLU()
         self.e2Drouput1 = nn.Dropout(self.dropOutRatio)
+        
         self.e1Linear2 = nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer)
         self.e1BatchNorm2 = nn.BatchNorm1d(self.sizeEmbLayer)
         self.e1ReLu2 = nn.ReLU()
         self.e2Drouput2 = nn.Dropout(self.dropOutRatio)
+
+        #self.embedLayer = nn.Sequential(
+        #    nn.Linear(2, self.sizeEmbLayer),
+        #    nn.ReLU(),
+        #    nn.Dropout(self.dropOutRatio),
+        #    nn.Linear(self.sizeEmbLayer, self.sizeEmbLayer),
+        #    nn.ReLU(),
+        #    nn.Dropout(self.dropOutRatio),
+        #)
 
         self.classLayer = nn.Sequential(
             nn.Linear(self.sizeEmbLayer, self.sizeClassfLayer),
@@ -45,8 +55,8 @@ class NCC(nn.Module):
         e1D1 = self.e2Drouput1(e1R1)
         
         # second embedded layer 
-        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeClassfLayer, DataSize)
-        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeClassfLayer)
+        e1L2 = self.e1Linear2(e1D1).view(BatchSize, self.sizeEmbLayer, DataSize)
+        e1B2 = self.e1BatchNorm2(e1L2).view(BatchSize, DataSize, self.sizeEmbLayer)
         e1R2 = self.e1ReLu2(e1B2)
         e1D2 = self.e2Drouput2(e1R2)
 
@@ -108,7 +118,7 @@ def returnTorchForVector(listObj):
 
 def testNCC():
     tubDataset = "./data/tubehengenDataFormat.json"
-    model = torch.load('./model/NCClinear32_100.pt')
+    model = torch.load('./model/NCCorig.pt')
     model.eval()
     with torch.no_grad():
         with open(tubDataset, "r") as tubDataReader:
