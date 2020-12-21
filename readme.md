@@ -102,7 +102,9 @@ Recognizing Causal Features Using Machine Learning
 
 
 ## Discussion 
+&nbsp;&nbsp;It is highly suspicious that the model training didn’t occur for all type of models. The train loss value seems to be almost random between 0.6 ~ 0.8 for all batches. Learning curve of train/test losses should be gradually minimized following gradient descend, but both loss from our result does not show such curve. In addition, as shown from the result of Deep NCC, sometimes the model classified entire test sets into same feature under every iteration. This also indicates the model is not being properly updated. Moreover, some of the accuracy test values were missing for original NCC and Residual NCC, where accuracy test should run together with train loss calculation, featuring one value per one epoch as like as train loss. From our code, accuracy test runs sequentially before model update. The model update is set to only happen when train/test loss decreases, thus, this also indicates our model is not learning from the inputs. 
 
+&nbsp;&nbsp;Classical cause for this could be vanishing gradient problem, but since we are using ReLU as activation function in every layer, the gradient should be determined. Not properly shuffling the training value for every iteration also could be one reason; shuffling values should be done only for batch but for epoch. If the mechanism generating the training dataset is flawed, this could also cause such problematic results. Debugging for each suspected cause is strongly suggested for troubleshooting. 
 
 
 ## References 
