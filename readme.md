@@ -33,11 +33,11 @@ Recognizing Causal Features Using Machine Learning
 
 &nbsp;&nbsp;Each data point pairs are originated from a distribution under interventional expectation. That is, the causal direction of a pair (X<sub>i</sub>, Y<sub>i</sub>) depends on the causal direction of its underlying distribution (X, Y). **Figure 2** illustrates each different distribution having its own causal direction. Using such data for training, the model learns how to classify a data point pair into appropriate distribution. To sum up, model training from this study follows the logic of binary classification. 
 
-&nbsp;&nbsp;We set different datasets for model training and evaluation. The training data contains a set of artificially generated causal features, where the testing data is from a distribution having ground-truth causal features. We provide train/test loss acquired from running the training dataset, and model accuracy acquired from predicting the testing dataset. We follow the training dataset generating method from[ref3], by modifying codes from GitHub repository[ref4]. 
+&nbsp;&nbsp;We set different datasets for model training and evaluation. The training data contains a set of artificially generated causal features, where the testing data is from a distribution having ground-truth causal features. We provide train/test loss acquired from running the training dataset, and model accuracy acquired from predicting the testing dataset. We follow the training dataset generating method from[ref1], by modifying codes from GitHub repository[ref4]. 
 
-* **Training dataset.** For training dataset, the most important is to properly featurize each data points while generating them. We apply Gaussian mixture model to keep each causal features' distribution consistent. 30,000 *data points* in total are generated under 128 different causal *feature* distributions. The length of a feature, or the number of data point a feature carries, is set to vary from 100 to 1,000, and is denoted as *m* in **Figure 3, 4, 5**. 
+* **Training dataset.** For training dataset, the most important is to properly featurize each data points while generating them. We apply Gaussian mixture model to keep each causal features' distribution consistent. 30,000 *data point pairs* in total are generated under 128 different causal *feature* distributions. We set one feature into one batch. Since we are training data point *pairs*, we set 128 * 2 = 256 for batch size(this could be better understood by referencing *m* from **Figure 3, 4, 5**). One epoch is consisted of 900 batch. In our study, we run total 25 epochs for training.
 
-* **Testing dataset.** Testing dataset is used to evaluate the model accuracy. We use the dataset collected from the study[ref5], which could be downloaded from <http://webdav.tuebingen.mpg.de/cause-effect/>. All data points are collected from the real-world observation, and each feature is labeled under its ground-truth causal direction. For instance, if X stands for altitude and Y stands for temperature, then all data points included in such feature distribution is labeled as binary value 1, since altitude causes temperature (X → Y). 
+* **Testing dataset.** Testing dataset is used to evaluate the model accuracy. We use the dataset collected from the study[ref5], which could be downloaded from <http://webdav.tuebingen.mpg.de/cause-effect/>. All data points are collected from the real-world observation, and each feature is labeled under its ground-truth causal direction. For instance, if X stands for altitude and Y stands for temperature, then all data points included in such feature distribution is labeled as binary value 1, since altitude causes temperature (X → Y).
 
 ### Models 
 &nbsp;&nbsp;Our model follows the structure of Neural causation coefficient (NCC). All model realizations from this study are based on the paper[] and codes from GitHub repository[ref]. Both embedding and classifier layers are consisted of 4 sequential neural network activation functions from PyTorch: linear unit, 1D batch normalization, rectified linear unit, and then dropout unit with dropout rate of 0.75. All layers have 100 neurons and are fully connected. 
@@ -62,7 +62,7 @@ Recognizing Causal Features Using Machine Learning
 
 &nbsp;&nbsp;Deep NCC is a multi-layered variant of NCC. It has same overall structure but 8 layers for each embedding and classifier layers. 
 
-* **Residual NCC** (Fig.4)
+* **Residual NCC**
 
 <p align="center">
   <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/ncc-res.png" width="100%" height="100%">
@@ -74,7 +74,31 @@ Recognizing Causal Features Using Machine Learning
 
 
 ## Results 
+&nbsp;&nbsp;Replicating the result from [ref1] and [ref4] did not work very well. We could not compare overall performances of each different model well enough. All of the learning curve results below are plotted using Tensorboard. Orange line indicates original NCC, blue line indicates Deep NCC, and red line indicates values of Residual NCC. Dark lines are after values after smoothing, while lighter lines are values of original data before smoothing. 
 
+* **Train loss**
+
+<p align="center">
+  <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/trainloss.PNG" width="70%" height="70%">
+</p>
+
+**Figure 6.** Plot of train loss. X axis shows the iterating batch number, while Y shows train loss from each batch. Length of X is total number of batch iteration for 25 epochs = 900 * 25 = 22,500. Both original NCC and Deep NCC does not show significant difference, while Residual NCC show higher loss than the both. For all models, train loss doen not seems to decrease. 
+
+* **Test loss**
+
+<p align="center">
+  <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/testloss.PNG" width="50%" height="50%">
+</p>
+
+**Figure 7.** Plot of test loss. X axis shows iteration number of epoch, and Y shows test loss calculated from each epoch iteration. Length of X is total number of epoch iteration = 25. The variance between models seems high compared to variance within models, although the difference of each Y axis values are very small. As like as from the train loss result, test loss also does not seems to decrease. 
+
+* **Test accuracy** 
+
+<p align="center">
+  <img src="https://github.com/hjpae/NCC-psych239_f2020/blob/main/figures/testacc.PNG" width="60%" height="60%">
+</p>
+
+**Figure 8.** Plot of test accuracy. X axis shows iteration number of epoch, and Y shows test accuracy calculated from each epoch iteration. Length of X is total number of epoch iteration = 25, but from unknown reason the testing result from original NCC and Residual NCC is only performed partially. Test accuracy seems almost constant, however, Deep NCC model scored 75% accuracy all the time by giving only same answer (classified all test set as *causal*) to non-shuffled test set. 
 
 
 ## Discussion 
