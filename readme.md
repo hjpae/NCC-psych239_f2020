@@ -112,7 +112,7 @@ Recognizing Causal Features Using Machine Learning
 
 <a name="ref3">[3]</a>: <a href="https://arxiv.org/abs/1512.03385">(He, Zhang, Ren, Sun 2015) Deep Residual Learning for Image Recognition</a>
 
-<a name="ref4">[4]</a>: <a href="https://github.com/zzl-pointcloud/NCC-pytorch">NCC-PyTorch</a>
+<a name="ref4">[4]</a>: <a href="https://github.com/zzl-pointcloud/NCC-pytorch">(2020) NCC-PyTorch: PyTorch version of NCC realization</a>
 
 <a name="ref5">[5]</a>: <a href="https://jmlr.org/papers/v17/14-518.html">(Mooij, Peters, Janzing, Zscheischler, Scholkopf 2016) Distinguishing Cause from Effect Using Observational Data: Methods and Benchmarks</a>
 
